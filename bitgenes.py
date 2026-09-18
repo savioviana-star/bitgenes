@@ -1,54 +1,68 @@
 from sys import getsizeof
 
 class CompressedGene:
-    def __init__(self, gene: str) -> None:
-        self._compress(gene)
+    def __init__(self, gene, gened):
+        if gene:
+            self.compress(gene)
+        else:
+            self.bit_string = gened
 
-    def _compress(self, gene: str) -> None:
-        self.bit_string: int = 1 
+    def compress(self, gene):
+        self.bit_string = 0b01
         for nucleotide in gene:
             self.bit_string <<= 2
-            if nucleotide == "A":
+            if nucleotide == "A": 
                 self.bit_string |= 0b00
-            elif nucleotide == "C":
+            elif nucleotide == "C": 
                 self.bit_string |= 0b01
-            elif nucleotide == "G":
+            elif nucleotide == "G": 
                 self.bit_string |= 0b10
-            elif nucleotide == "T":
+            elif nucleotide == "T": 
                 self.bit_string |= 0b11
-            else:
-                raise ValueError("Invalid Nucleotide")
-            
-    def decompress(self) -> str:
-        gene: str = ""
+            else: raise ValueError("Invalid Nucleotide")
+
+    def decompress(self):
+        gene = ""
         for i in range(0, self.bit_string.bit_length() - 1, 2):
-            bits: int = self.bit_string >> i & 0b11
-            if bits == 0b00:
+            bits = self.bit_string >> i & 0b11
+            if bits == 0b00: 
                 gene += "A"
             elif bits == 0b01: 
                 gene += "C"
             elif bits == 0b10: 
                 gene += "G"
-            elif bits == 0b11:
+            elif bits == 0b11: 
                 gene += "T"
-            else:
-                raise ValueError("Invalido")
-            return gene[::-1]
-    def __str__(self) -> str: 
-        return self.decompress()
+        return gene[::-1]
 
-arquivo = open("genes.txt", "r")
-original = arquivo.read().upper()
-arquivo.close()  
-print("original contém {} bytes".format(getsizeof(original)))   
-compressed: CompressedGene = CompressedGene(original)
-print("compressionado contém {} bytes".format(getsizeof(compressed.bit_string)))
-tamanho_original = getsizeof(original)
-tamanho_compressionado = getsizeof(compressed.bit_string)
-correto = tamanho_original*0.28
-if (tamanho_compressionado <= correto):
-    print("Deu bom")
-else:
-    print("Deu Ruim")
+    def save_to_file(self, filename, is_binary):
+        if is_binary:
+            num_bytes = (self.bit_string.bit_length() + 7) // 8
+            bytes_data = self.bit_string.to_bytes(num_bytes, byteorder='big')
+            with open(filename, "wb") as arquivo:
+                arquivo.write(bytes_data)
+        else:
+            self.bit_string = int.from_bytes(self.bit_string, byteorder='big')
+            with open(filename, "w") as arquivo:
+                arquivo.write(self.decompress())
 
 
+with open("genes.txt", "r") as arquivo:
+    original = arquivo.read()
+
+compressed = CompressedGene(original, None)
+compressed.save_to_file("genes_comprimidos.bin", is_binary=True)
+
+with open("genes_comprimidos.bin", "rb") as arquivo:
+    genes_comprimidos = arquivo.read()
+
+descompressed = CompressedGene(None, genes_comprimidos)
+descompressed.save_to_file("genes_descomprimidos.txt", is_binary=False)
+
+with open("genes_descomprimidos.txt", "r") as arquivo:
+    modificado = arquivo.read()
+
+print("Arquivo de texto 'genes_descomprimidos.txt' gerado para comparacao manual!\n")
+print(f"Original: {getsizeof(original)} bytes na RAM")
+print(f"Comprimido (bits): {getsizeof(compressed.bit_string)} bytes na RAM")
+print(f"Descomprimido: {getsizeof(modificado)} bytes na RAM")
