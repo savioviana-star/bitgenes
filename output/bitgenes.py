@@ -1,3 +1,4 @@
+import os
 from sys import getsizeof
 
 class CompressedGene:
@@ -45,23 +46,30 @@ class CompressedGene:
             with open(filename, "w") as arquivo:
                 arquivo.write(self.decompress())
 
+os.makedirs("output", exist_ok=True)
 
-with open("genes.txt", "r") as arquivo:
+with open("output/genes.txt", "r") as arquivo:
     original = arquivo.read()
 
 compressed = CompressedGene(original, None)
-compressed.save_to_file("genes_comprimidos.bin", is_binary=True)
+compressed.save_to_file("output/genes_comprimidos.bin", is_binary=True)
 
-with open("genes_comprimidos.bin", "rb") as arquivo:
+with open("output/genes_comprimidos.bin", "rb") as arquivo:
     genes_comprimidos = arquivo.read()
 
 descompressed = CompressedGene(None, genes_comprimidos)
-descompressed.save_to_file("genes_descomprimidos.txt", is_binary=False)
+descompressed.save_to_file("output/genes_descomprimidos.txt", is_binary=False)
 
-with open("genes_descomprimidos.txt", "r") as arquivo:
+with open("output/genes_descomprimidos.txt", "r") as arquivo:
     modificado = arquivo.read()
 
-print("Arquivo de texto 'genes_descomprimidos.txt' gerado para comparacao manual!\n")
-print(f"Original: {getsizeof(original)} bytes na RAM")
-print(f"Comprimido (bits): {getsizeof(compressed.bit_string)} bytes na RAM")
-print(f"Descomprimido: {getsizeof(modificado)} bytes na RAM")
+print("Arquivo de texto 'output/genes_descomprimidos.txt' gerado para comparacao manual!\n")
+print(f"Original: {os.path.getsize('output/genes.txt')} bytes no disco, {getsizeof(original)} bytes na RAM")
+print(f"Comprimido (bits): {os.path.getsize('output/genes_comprimidos.bin')} bytes no disco, {getsizeof(compressed.bit_string)} bytes na RAM")
+print(f"Descomprimido: {os.path.getsize('output/genes_descomprimidos.txt')} bytes no disco, {getsizeof(modificado)} bytes na RAM")
+
+x = os.path.getsize('output/genes.txt')
+y = os.path.getsize('output/genes_comprimidos.bin')
+z = os.path.getsize('output/genes_descomprimidos.txt')
+
+print(f"Porcentagem de compressão: {100 - (y / x * 100):.2f}%")
