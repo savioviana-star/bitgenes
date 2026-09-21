@@ -5,7 +5,7 @@ class CompressedGene:
         if gene:
             self.compress(gene)
         else:
-            self.bit_string = gened
+            self.bit_string = int.from_bytes(gened, byteorder='big')
 
     def compress(self, gene):
         self.bit_string = 0b01
@@ -42,7 +42,6 @@ class CompressedGene:
             with open(filename, "wb") as arquivo:
                 arquivo.write(bytes_data)
         else:
-            self.bit_string = int.from_bytes(self.bit_string, byteorder='big')
             with open(filename, "w") as arquivo:
                 arquivo.write(self.decompress())
 
